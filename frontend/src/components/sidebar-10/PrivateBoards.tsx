@@ -34,7 +34,7 @@ export function PrivateBoards() {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Private Boards</SidebarGroupLabel>
+      <SidebarGroupLabel>My Private Boards</SidebarGroupLabel>
       <SidebarMenu>
         {isLoading && (
           <SidebarMenuItem>

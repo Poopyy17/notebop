@@ -1,5 +1,6 @@
 import { useMatch } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
+import { useUser } from "@stackframe/react"
 
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { BoardActionsMenu } from "@/components/BoardActionsMenu"
@@ -7,6 +8,8 @@ import { FavoriteButton } from "@/components/FavoriteButton"
 import { getBoardApi } from "@/api/boards"
 
 export function NavActions() {
+  const user = useUser()
+  
   // Use useMatch to get the board ID from the URL since this component is outside the Routes
   const boardMatch = useMatch('/board/:id')
   const boardId = boardMatch?.params.id
@@ -19,6 +22,7 @@ export function NavActions() {
   })
   
   const board = boardData?.board
+  const isBoardOwner = board?.user_id === user?.id
   
   // Format last edited date
   const formatLastEdited = (dateString: string) => {
@@ -28,8 +32,8 @@ export function NavActions() {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      {/* Show last edited date when on a board page */}
-      {board && (
+      {/* Show last edited date only for board owner */}
+      {board && isBoardOwner && (
         <div className="text-muted-foreground hidden font-medium md:inline-block">
           Last Edited on {formatLastEdited(board.updated_at)}
         </div>
@@ -37,8 +41,8 @@ export function NavActions() {
       
       <ThemeToggle />
 
-      {/* Show favorite toggle and actions menu when on a board page */}
-      {board && (
+      {/* Show favorite toggle and actions menu only when on own board */}
+      {board && isBoardOwner && (
         <>
           <FavoriteButton 
             boardId={board.id} 

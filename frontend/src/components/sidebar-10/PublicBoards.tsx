@@ -34,7 +34,7 @@ export function PublicBoards() {
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Public Boards</SidebarGroupLabel>
+      <SidebarGroupLabel>My Public Boards</SidebarGroupLabel>
       <SidebarMenu>
         {isLoading && (
           <SidebarMenuItem>

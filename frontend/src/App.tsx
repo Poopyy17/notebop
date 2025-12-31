@@ -35,7 +35,7 @@ const MainLayout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col h-screen overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-2">
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
@@ -70,14 +70,16 @@ const MainLayout = () => {
             <NavActions />
           </div>
         </header>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/trash" element={<Trash />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/board/:id" element={<Board />} />
-          <Route path="/user/:userId" element={<UserProfile />} />
-        </Routes>
+        <div className="flex-1 overflow-hidden">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/trash" element={<Trash />} />
+            <Route path="/friends" element={<Friends />} />
+            <Route path="/board/:id" element={<Board />} />
+            <Route path="/user/:userId" element={<UserProfile />} />
+          </Routes>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

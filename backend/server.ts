@@ -6,6 +6,7 @@ import uploadRoutes from './routes/upload.js'
 import boardsRoutes from './routes/boards.js'
 import friendshipsRoutes from './routes/friendships.js'
 import usersRoutes from './routes/users.js'
+import notesRoutes from './routes/notes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -23,6 +24,7 @@ app.use('/api/upload', uploadRoutes)
 app.use('/api/boards', boardsRoutes)
 app.use('/api/friendships', friendshipsRoutes)
 app.use('/api/users', usersRoutes)
+app.use('/api/notes', notesRoutes)
 
 // Health check
 app.get('/health', (req, res) => {

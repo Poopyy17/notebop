@@ -4,6 +4,7 @@ import {
   flexRender,
   createColumnHelper,
 } from '@tanstack/react-table'
+import { useNavigate } from 'react-router-dom'
 import { LayoutGrid, List } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -84,11 +85,17 @@ export function BoardsTable({
   emptyMessage = 'No boards',
   emptyDescription = 'No boards to display',
 }: BoardsTableProps) {
+  const navigate = useNavigate()
+  
   const table = useReactTable({
     data: boards,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
+
+  const handleBoardClick = (boardId: string) => {
+    navigate(`/board/${boardId}`)
+  }
 
   if (boards.length === 0) {
     return (
@@ -127,6 +134,7 @@ export function BoardsTable({
               <tr
                 key={row.id}
                 className="border-t cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => handleBoardClick(row.original.id)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="h-12 px-4">
@@ -148,6 +156,7 @@ export function BoardsTable({
         <Card
           key={board.id}
           className="p-3 cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => handleBoardClick(board.id)}
         >
           <div className="flex items-center gap-2 mb-2">
             {board.emoji && <span className="text-xl">{board.emoji}</span>}
