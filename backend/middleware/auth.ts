@@ -23,7 +23,12 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     }
 
     const accessToken = authHeader.split(' ')[1]
-    const user = await stackServerApp.getUser({ accessToken })
+    const user = await stackServerApp.getUser({ 
+      tokenStore: { 
+        accessToken, 
+        refreshToken: '' 
+      } 
+    })
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid or expired token' })

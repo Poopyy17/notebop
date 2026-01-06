@@ -7,6 +7,8 @@ export interface Board {
   emoji: string | null
   is_private: boolean
   is_favorite: boolean
+  note_limit: number | null
+  allow_posting: boolean
   deleted_at: string | null
   created_at: string
   updated_at: string
@@ -23,6 +25,8 @@ export interface UpdateBoardParams {
   name?: string
   emoji?: string | null
   isPrivate?: boolean
+  noteLimit?: number | null
+  allowPosting?: boolean
 }
 
 // Get all boards for a user
@@ -223,6 +227,44 @@ export async function getUserBoardsApi(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.error || 'Failed to fetch user boards')
+  }
+
+  return response.json()
+}
+
+// Update board settings (note limit and allow posting)
+export interface UpdateBoardSettingsParams {
+  noteLimit?: number | null
+  allowPosting?: boolean
+}
+
+export async function updateBoardSettingsApi(
+  id: string,
+  params: UpdateBoardSettingsParams
+): Promise<{ board: Board }> {
+  const response = await fetch(`${API_URL}/api/boards/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Failed to update board settings')
+  }
+
+  return response.json()
+}
+
+// Get unviewed note counts for all user boards
+export async function getUnviewedCountsApi(userId: string): Promise<{ counts: Record<string, number> }> {
+  const response = await fetch(`${API_URL}/api/boards/unviewed-counts?userId=${userId}`)
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Failed to fetch unviewed counts')
   }
 
   return response.json()

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import EmojiPicker from 'emoji-picker-react'
 import { Smile, User } from 'lucide-react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -8,8 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useUpdateNoteReaction } from '@/hooks/useNotes'
 import { useUser as useStackUser } from '@stackframe/react'
 import { getUserApi } from '@/api/users'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { NoteViewModal } from './NoteViewModal'
+import { markNoteAsViewedApi } from '@/api/notes'
+import { boardKeys } from '@/hooks/useBoards'
 import type { Note } from '@/api/notes'
 
 interface NoteCardProps {
@@ -19,15 +23,52 @@ interface NoteCardProps {
 
 export function NoteCard({ note, isBoardOwner }: NoteCardProps) {
   const stackUser = useStackUser()
+  const queryClient = useQueryClient()
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const updateReaction = useUpdateNoteReaction()
+
+  // DND-kit sortable hook (only for board owners)
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: note.id, disabled: !isBoardOwner })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 999 : 'auto',
+  }
 
   const { data: noteCreator } = useQuery({
     queryKey: ['users', note.user_id],
     queryFn: () => getUserApi(note.user_id),
     select: (data) => data.user,
   })
+
+  const markAsViewedMutation = useMutation({
+    mutationFn: () => markNoteAsViewedApi(note.id, stackUser?.id || ''),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes', 'board', note.board_id] })
+      // Invalidate unviewed counts to update sidebar badge
+      if (stackUser?.id) {
+        queryClient.invalidateQueries({ queryKey: boardKeys.unviewedCounts(stackUser.id) })
+      }
+    },
+  })
+
+  const handleNoteClick = () => {
+    setIsViewModalOpen(true)
+    // Mark as viewed when board owner clicks the note
+    if (isBoardOwner && !note.is_viewed && stackUser?.id) {
+      markAsViewedMutation.mutate()
+    }
+  }
 
   const handleEmojiClick = (emojiData: any) => {
     updateReaction.mutate(
@@ -63,11 +104,21 @@ export function NoteCard({ note, isBoardOwner }: NoteCardProps) {
   return (
     <>
       <Card
-        className="aspect-square p-4 flex flex-col transition-shadow hover:shadow-md"
-        style={{ backgroundColor: note.color }}
+        ref={setNodeRef}
+        style={{ ...style, backgroundColor: note.color }}
+        className="aspect-square p-4 flex flex-col transition-shadow hover:shadow-md relative"
       >
-        {/* Top section: Avatar, Name, Time, Reaction */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+        {/* Unviewed indicator - small red dot at top-right corner for board owner */}
+        {isBoardOwner && !note.is_viewed && (
+          <div className="absolute top-2 right-2 size-2 bg-blue-600 rounded-full animate-pulse" title="Unviewed note" />
+        )}
+
+        {/* Top section: Avatar, Name, Time, Reaction - Drag Handle for Board Owner */}
+        <div 
+          className="flex items-start justify-between gap-2 mb-3"
+          {...(isBoardOwner ? { ...attributes, ...listeners } : {})}
+          style={{ cursor: isBoardOwner ? 'grab' : 'default' }}
+        >
           <div className="flex items-start gap-2">
             {note.is_anonymous ? (
               <Avatar className="size-8 flex-shrink-0">
@@ -92,25 +143,27 @@ export function NoteCard({ note, isBoardOwner }: NoteCardProps) {
           </div>
 
           {isBoardOwner && (
-            <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 hover:bg-background/50"
-                  title={note.reaction ? "Change reaction" : "Add reaction"}
-                >
-                  {note.reaction ? (
-                    <span className="text-lg">{note.reaction}</span>
-                  ) : (
-                    <Smile className="size-4" />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-0" align="end">
-                <EmojiPicker onEmojiClick={handleEmojiClick} />
-              </PopoverContent>
-            </Popover>
+            <div onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+              <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 hover:bg-background/50"
+                    title={note.reaction ? "Change reaction" : "Add reaction"}
+                  >
+                    {note.reaction ? (
+                      <span className="text-lg">{note.reaction}</span>
+                    ) : (
+                      <Smile className="size-4" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-0" align="end">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </PopoverContent>
+              </Popover>
+            </div>
           )}
 
           {!isBoardOwner && note.reaction && (
@@ -123,7 +176,7 @@ export function NoteCard({ note, isBoardOwner }: NoteCardProps) {
         {/* Bottom section: Body (clickable) */}
         <div
           className="flex-1 bg-white/80 rounded-lg p-3 cursor-pointer hover:bg-white/90 transition-colors overflow-hidden"
-          onClick={() => setIsViewModalOpen(true)}
+          onClick={handleNoteClick}
         >
           <div
             className="prose prose-sm max-w-none line-clamp-6 text-gray-900"

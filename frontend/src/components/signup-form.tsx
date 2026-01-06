@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { useNavigate } from "react-router-dom"
 import { useStackApp } from "@stackframe/react"
+import NoteBopLogo from '@/assets/NoteBop-logo.png'
+import NoteBopLogoW from '@/assets/NoteBop-logoW.png'
 
 export function SignupForm({
   className,
@@ -57,6 +59,20 @@ export function SignupForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="flex items-center justify-center mb-2">
+        <img 
+          src={NoteBopLogo} 
+          alt="NoteBop" 
+          className="h-18 w-auto dark:hidden"
+          draggable="false"
+        />
+        <img 
+          src={NoteBopLogoW} 
+          alt="NoteBop" 
+          className="h-18 w-auto hidden dark:block"
+          draggable="false"
+        />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Create an account</CardTitle>

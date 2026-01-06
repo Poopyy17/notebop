@@ -11,6 +11,7 @@ import {
   trashBoardApi,
   restoreBoardApi,
   getUserBoardsApi,
+  getUnviewedCountsApi,
 } from '@/api/boards'
 import type { CreateBoardParams, UpdateBoardParams } from '@/api/boards'
 
@@ -23,6 +24,7 @@ export const boardKeys = {
   detail: (id: string) => [...boardKeys.all, 'detail', id] as const,
   userBoards: (targetUserId: string, currentUserId: string) =>
     [...boardKeys.all, 'user', targetUserId, currentUserId] as const,
+  unviewedCounts: (userId: string) => [...boardKeys.all, 'unviewedCounts', userId] as const,
 }
 
 // Hook to get public boards
@@ -180,5 +182,17 @@ export function useUserBoards(targetUserId: string | undefined) {
     queryKey: boardKeys.userBoards(targetUserId ?? '', user?.id ?? ''),
     queryFn: () => getUserBoardsApi(targetUserId!, user!.id),
     enabled: !!targetUserId && !!user?.id,
+  })
+}
+
+// Hook to get unviewed note counts for all user boards
+export function useUnviewedCounts() {
+  const user = useUser()
+
+  return useQuery({
+    queryKey: boardKeys.unviewedCounts(user?.id ?? ''),
+    queryFn: () => getUnviewedCountsApi(user!.id),
+    enabled: !!user?.id,
+    select: (data) => data.counts,
   })
 }

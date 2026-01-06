@@ -66,6 +66,7 @@ export function NoteEditor({ boardId, onSuccess, onCancel }: NoteEditorProps) {
         userId: user.id,
         body: editorContent,
         color: selectedColor,
+        isAnonymous: false,
       },
       {
         onSuccess: () => {

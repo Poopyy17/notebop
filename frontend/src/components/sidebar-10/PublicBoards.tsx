@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
@@ -15,12 +16,13 @@ import { BoardDialog } from "@/components/BoardDialog"
 import { BoardActionsMenu } from "@/components/BoardActionsMenu"
 import { FavoriteButton } from "@/components/FavoriteButton"
 import { EmptyBoards } from "@/components/sidebar-10/EmptyBoards"
-import { usePublicBoards } from "@/hooks/useBoards"
+import { usePublicBoards, useUnviewedCounts } from "@/hooks/useBoards"
 
 export function PublicBoards() {
   const { isMobile } = useSidebar()
   const [dialogOpen, setDialogOpen] = useState(false)
   const { data: boards = [], isLoading } = usePublicBoards()
+  const { data: unviewedCounts = {} } = useUnviewedCounts()
   const location = useLocation()
 
   // Sort boards with favorites at the top
@@ -46,26 +48,35 @@ export function PublicBoards() {
         {!isLoading && sortedBoards.length === 0 && (
           <EmptyBoards type="public" onAddNew={() => setDialogOpen(true)} />
         )}
-        {!isLoading && sortedBoards.map((item) => (
-          <SidebarMenuItem key={item.id}>
-            <SidebarMenuButton asChild isActive={location.pathname === `/board/${item.id}`}>
-              <RouterLink to={`/board/${item.id}`} title={item.name}>
-                <FavoriteButton 
-                  boardId={item.id} 
-                  isFavorite={item.is_favorite} 
-                  variant="sidebar" 
-                />
-                {item.emoji && <span>{item.emoji}</span>}
-                <span>{item.name}</span>
-              </RouterLink>
-            </SidebarMenuButton>
-            <BoardActionsMenu 
-              board={item} 
-              variant="sidebar" 
-              isMobile={isMobile} 
-            />
-          </SidebarMenuItem>
-        ))}
+        {!isLoading && sortedBoards.map((item) => {
+          const unviewedCount = unviewedCounts[item.id] || 0
+          
+          return (
+            <SidebarMenuItem key={item.id}>
+              <SidebarMenuButton asChild isActive={location.pathname === `/board/${item.id}`}>
+                <RouterLink to={`/board/${item.id}`} title={item.name}>
+                  <FavoriteButton 
+                    boardId={item.id} 
+                    isFavorite={item.is_favorite} 
+                    variant="sidebar" 
+                  />
+                  {item.emoji && <span>{item.emoji}</span>}
+                  <span>{item.name}</span>
+                </RouterLink>
+              </SidebarMenuButton>
+              {unviewedCount > 0 && (
+                <SidebarMenuBadge className="bg-red-500 right-8 rounded-full !text-white">
+                  {unviewedCount}
+                </SidebarMenuBadge>
+              )}
+              <BoardActionsMenu 
+                board={item} 
+                variant="sidebar" 
+                isMobile={isMobile} 
+              />
+            </SidebarMenuItem>
+          )
+        })}
         {!isLoading && sortedBoards.length > 0 && (
           <SidebarMenuItem>
             <SidebarMenuButton 

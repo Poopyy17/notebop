@@ -8,6 +8,8 @@ export interface Note {
   color: string
   reaction: string | null
   is_anonymous: boolean
+  is_viewed: boolean
+  position: number
   created_at: string
   updated_at: string
 }
@@ -79,6 +81,47 @@ export async function updateNoteReactionApi(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.error || 'Failed to update reaction')
+  }
+
+  return response.json()
+}
+
+export async function markNoteAsViewedApi(
+  noteId: string,
+  userId: string
+): Promise<{ note: Note }> {
+  const response = await fetch(`${API_URL}/api/notes/${noteId}/view`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Failed to mark note as viewed')
+  }
+
+  return response.json()
+}
+
+export async function reorderNotesApi(
+  userId: string,
+  boardId: string,
+  positions: Array<{ noteId: string; position: number }>
+): Promise<{ message: string }> {
+  const response = await fetch(`${API_URL}/api/notes/reorder`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId, boardId, positions }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || 'Failed to reorder notes')
   }
 
   return response.json()

@@ -2,8 +2,6 @@ import * as React from "react"
 import {
   Home,
   Inbox,
-  Search,
-  Settings2,
   Trash2,
   Users,
 } from "lucide-react"
@@ -28,11 +26,11 @@ const navSecondary = [
     url: "/trash",
     icon: Trash2,
   },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings2,
-  },
+  // {
+  //   title: "Settings",
+  //   url: "#",
+  //   icon: Settings2,
+  // },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -40,11 +38,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
 
   const navMain = [
-    {
-      title: "Search",
-      url: "#",
-      icon: Search,
-    },
+    // {
+    //   title: "Search",
+    //   url: "#",
+    //   icon: Search,
+    // },
     {
       title: "Home",
       url: "/",
