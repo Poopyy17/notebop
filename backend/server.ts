@@ -75,6 +75,12 @@ app.get('/health', async (req, res) => {
   res.status(statusCode).json(healthCheck)
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
-})
+// Export app for Vercel serverless functions
+export default app
+
+// Only start server if not in Vercel environment
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`)
+  })
+}
