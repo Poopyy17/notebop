@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import { neon } from '@neondatabase/serverless'
 import authRoutes from './routes/auth.js'
 import uploadRoutes from './routes/upload.js'
 import boardsRoutes from './routes/boards.js'
@@ -43,8 +44,7 @@ app.get('/health', async (req, res) => {
 
   // Check database connection
   try {
-    const { default: postgres } = await import('@neondatabase/serverless')
-    const sql = postgres(process.env.DATABASE_URL!)
+    const sql = neon(process.env.DATABASE_URL!)
     await sql`SELECT 1`
     healthCheck.services.database = 'connected'
   } catch (error) {
